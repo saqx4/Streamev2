@@ -162,8 +162,9 @@ object OkHttpProvider {
         }
 
         val builder = OkHttpClient.Builder()
-            // Direct API calls — no Supabase edge function proxy.
-            // TMDB/Trakt keys are passed as query params / headers by Retrofit.
+            // Route TMDB/Trakt calls through Supabase edge function proxies.
+            // This fixes devices/networks where direct access to TMDB/Trakt is blocked.
+            .addInterceptor(ApiProxyInterceptor())
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
