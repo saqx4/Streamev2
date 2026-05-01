@@ -15,6 +15,7 @@ object Constants {
 
     // Edge Function Proxies - API keys are kept secure on server
     val TMDB_PROXY_URL: String get() = "${SUPABASE_URL}/functions/v1/tmdb-proxy"
+    val TMDB_IMAGE_PROXY_URL: String get() = "${SUPABASE_URL}/functions/v1/tmdb-image-proxy"
     val TRAKT_PROXY_URL: String get() = "${SUPABASE_URL}/functions/v1/trakt-proxy"
     val TV_AUTH_START_URL: String get() = "${SUPABASE_URL}/functions/v1/tv-auth-start"
     val TV_AUTH_STATUS_URL: String get() = "${SUPABASE_URL}/functions/v1/tv-auth-status"

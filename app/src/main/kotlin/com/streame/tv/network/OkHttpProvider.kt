@@ -304,6 +304,8 @@ object OkHttpProvider {
         // The image CDN (image.tmdb.org) is a fast static-asset CDN that should respond
         // in <500ms; anything longer is a network issue that retrying later will fix.
         return OkHttpClient.Builder()
+            // Route TMDB image CDN calls through Supabase proxy when image.tmdb.org is blocked.
+            .addInterceptor(ApiProxyInterceptor())
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)

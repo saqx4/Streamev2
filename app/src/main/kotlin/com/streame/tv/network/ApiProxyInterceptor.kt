@@ -24,6 +24,11 @@ class ApiProxyInterceptor : Interceptor {
                 val proxyRequest = rewriteForTmdbProxy(originalRequest)
                 chain.proceed(proxyRequest)
             }
+            host.contains("image.tmdb.org") -> {
+                // Route TMDB image CDN requests through proxy
+                val proxyRequest = rewriteForTmdbImageProxy(originalRequest)
+                chain.proceed(proxyRequest)
+            }
             host.contains("trakt.tv") -> {
                 // Route Trakt requests through proxy
                 val proxyRequest = rewriteForTraktProxy(originalRequest)
@@ -107,5 +112,22 @@ class ApiProxyInterceptor : Interceptor {
         requestBuilder.removeHeader("trakt-api-version")
 
         return requestBuilder.build()
+    }
+
+    private fun rewriteForTmdbImageProxy(originalRequest: Request): Request {
+        val originalUrl = originalRequest.url
+
+        // image.tmdb.org paths look like: /t/p/w780/abc.jpg
+        val path = originalUrl.encodedPath
+
+        val proxyUrl = Constants.TMDB_IMAGE_PROXY_URL.toHttpUrl().newBuilder()
+            .addQueryParameter("path", path)
+            .build()
+
+        return originalRequest.newBuilder()
+            .url(proxyUrl)
+            .header("apikey", Constants.SUPABASE_ANON_KEY)
+            .header("Authorization", "Bearer ${Constants.SUPABASE_ANON_KEY}")
+            .build()
     }
 }
