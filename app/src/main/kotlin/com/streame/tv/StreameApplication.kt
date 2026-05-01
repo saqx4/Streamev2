@@ -36,6 +36,7 @@ import com.streame.tv.util.SentryCrashReporter
 import com.streame.tv.util.detectDeviceType
 import com.streame.tv.worker.TraktSyncWorker
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -52,7 +53,10 @@ import javax.inject.Inject
  */
 @HiltAndroidApp
 class StreameApplication : Application(), Configuration.Provider, ImageLoaderFactory {
-    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        AppLogger.e("AppScope", "Unhandled coroutine exception", throwable)
+    }
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + coroutineExceptionHandler)
     @Volatile
     private var appImageLoader: ImageLoader? = null
 
@@ -74,6 +78,17 @@ class StreameApplication : Application(), Configuration.Provider, ImageLoaderFac
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        // Global safety net: catch any unhandled exception from coroutines or
+        // Compose that would otherwise crash the process. Log and swallow so
+        // the user sees a brief glitch instead of a full app restart.
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            AppLogger.e("Uncaught", "Unhandled exception on ${thread.name}", throwable)
+            // Don't re-invoke the default handler — that kills the process.
+            // Swallowing is intentional: a momentary UI glitch is better
+            // than a hard crash on TV (no easy way to restart).
+        }
 
         // OkHttpProvider.init(context) just stashes the app context; it does
         // not build the OkHttpClient. Safe to keep on the main thread — it's

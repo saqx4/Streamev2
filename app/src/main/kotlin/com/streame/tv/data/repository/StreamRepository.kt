@@ -31,6 +31,7 @@ import com.streame.tv.util.settingsDataStore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -155,7 +156,9 @@ class StreamRepository @Inject constructor(
         var consecutiveFailures: Int = 0
     )
     private val addonRuntimeHealth = mutableMapOf<String, AddonRuntimeHealth>()
-    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, t ->
+        android.util.Log.e("StreamRepo", "Unhandled coroutine exception", t)
+    })
     @Volatile private var addonHealthLoadedProfileId: String? = null
 
     // Precompiled quality filters cached in memory to avoid DataStore reads and regex compilation in hot path

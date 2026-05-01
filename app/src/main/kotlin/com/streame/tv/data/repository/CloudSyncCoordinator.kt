@@ -1,6 +1,7 @@
 package com.streame.tv.data.repository
 
 import android.util.Log
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -17,7 +18,9 @@ class CloudSyncCoordinator @Inject constructor(
     private val cloudSyncRepository: CloudSyncRepository,
     private val authRepository: AuthRepository
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, t ->
+        Log.e("CloudSyncCoord", "Unhandled coroutine exception", t)
+    })
     private var collectorJob: Job? = null
     private var flushJob: Job? = null
 

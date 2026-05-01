@@ -67,7 +67,9 @@ class RealtimeSyncManager @Inject constructor(
         private const val TOKEN_REFRESH_INTERVAL_MS = 30 * 60 * 1000L
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, t ->
+        Log.e(TAG, "Unhandled coroutine exception", t)
+    })
     private val isRunning = AtomicBoolean(false)
     private val msgRef = AtomicInteger(1)
 

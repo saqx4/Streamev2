@@ -15,6 +15,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
 import okhttp3.logging.HttpLoggingInterceptor
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -72,7 +73,9 @@ object OkHttpProvider {
     @Volatile
     private var selectedDnsProvider: AppDnsProvider = AppDnsProvider.SYSTEM
 
-    private val dnsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val dnsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, t ->
+        Log.e("OkHttpProvider", "Unhandled coroutine exception", t)
+    })
     private val clientLock = Any()
 
     private val appConnectionPool = ConnectionPool(32, 5, TimeUnit.MINUTES)
